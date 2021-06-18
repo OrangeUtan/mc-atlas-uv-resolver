@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "mc_atlas_uv_resolver"
+version = "0.1.0"
+description = "Resolves UVs of textures on Minecraft texture atlases"
+authors = ["Oran9eUtan <Oran9eUtan@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+typer = "^0.3.2"
+Pillow = "^8.2.0"
+beet = "^0.31.4"
+
+[tool.poetry.dev-dependencies]
+python-semantic-release = "^7.16.1"
+pytest-cov = "^2.12.1"
+coverage-badge = "^1.0.1"
+isort = "^5.8.0"
+mypy = "^0.902"
+black = "^21.6b0"
+pre-commit = "^2.13.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+
+[tool.isort]
+line_length = 100
+
+[tool.semantic_release]
+branch="release"
+version_toml = "pyproject.toml:tool.poetry.version"
+version_variable = ["mc_atlas_uv_resolver/__init__.py:__version__"]
+major_on_zero = false
+build_command = "poetry build"

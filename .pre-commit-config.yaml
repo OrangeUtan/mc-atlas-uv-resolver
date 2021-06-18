@@ -1,0 +1,31 @@
+default_language_version:
+  python: python3.9
+
+default_stages: ["commit"]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: isort
+        name: isort
+        types: [python]
+        language: system
+        entry: poetry run isort --settings-path pyproject.toml --profile black
+      - id: black
+        name: black
+        types: [python]
+        language: system
+        entry: poetry run black --config pyproject.toml
+      - id: mypy
+        name: mypy
+        types: [python]
+        language: system
+        entry: poetry run mypy --config-file pyproject.toml
+        stages: ["push"]
