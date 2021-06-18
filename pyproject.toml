@@ -9,9 +9,11 @@ license = "MIT"
 python = "^3.9"
 typer = "^0.3.2"
 Pillow = "^8.2.0"
-beet = "^0.31.4"
+opencv-contrib-python = "^4.5.2"
+prettytable = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
+beet = "^0.31.4"
 python-semantic-release = "^7.16.1"
 pytest-cov = "^2.12.1"
 coverage-badge = "^1.0.1"

@@ -3,9 +3,11 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+from prettytable import PrettyTable
 
 from mc_atlas_uv_resolver import __version__
 
+from . import utils, uvs
 from .convert import *
 
 
@@ -25,7 +27,9 @@ def cb_main(
 
 app = typer.Typer(callback=cb_main, no_args_is_help=True)
 app_atlas = typer.Typer(name="atlas", no_args_is_help=True)
+app_uvs = typer.Typer(name="uvs", no_args_is_help=True)
 app.add_typer(app_atlas)
+app.add_typer(app_uvs)
 
 
 @app_atlas.command(name="convert", no_args_is_help=True, help="Convert file to texture atlas")
@@ -45,3 +49,24 @@ def cmd_atlas(
     if not dest:
         dest = Path(os.path.dirname(source), f"{source.stem}.png")
     convert_file_to_atlas(source, dest, width, height, mode)
+
+
+@app_uvs.command(name="find", no_args_is_help=True, help="Find texture uvs on a texture atlas")
+def cmd_find_texture_uvs_on_atlas(
+    atlas: Path = typer.Argument(..., exists=True, readable=True, dir_okay=False),
+    textures: list[Path] = typer.Argument(..., exists=True, readable=True),
+    print_table: bool = typer.Option(None, "--table"),
+):
+    texture_uvs = uvs.find_all_texture_uvs_in_atlas(
+        list(filter(lambda t: t.suffix == ".png", utils.flatten_paths(textures))), atlas
+    )
+
+    if print_table:
+        table = PrettyTable(["texture", "x", "y"])
+        table.align["texture"] = "l"
+        for path, u, v in texture_uvs:
+            table.add_row([path, u, v])
+        print(table)
+    else:
+        for path, u, v in texture_uvs:
+            print(path, u, v)
