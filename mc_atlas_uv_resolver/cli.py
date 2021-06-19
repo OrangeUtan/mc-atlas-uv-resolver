@@ -55,14 +55,25 @@ def cmd_atlas(
 def cmd_find_texture_uvs_on_atlas(
     atlas: Path = typer.Argument(..., exists=True, readable=True, dir_okay=False),
     textures: list[Path] = typer.Argument(..., exists=True, readable=True),
-    print_table: bool = typer.Option(None, "--table"),
+    print_table: bool = typer.Option(False, "--table"),
+    dest: Optional[Path] = typer.Option(None, "--out", "-o", writable=True, dir_okay=False),
 ):
     flattened_textures = utils.flatten_paths(textures)
     texture_uvs = uvs.find_all_texture_uvs_in_atlas(
         list(filter(lambda t: t.suffix == ".png", flattened_textures)), atlas
     )
 
-    if print_table:
+    if dest:
+        with dest.open("w") as f:
+            with typer.progressbar(
+                texture_uvs,
+                length=len(flattened_textures),
+                label="Resolving UVs",
+                item_show_func=lambda i: str(i[0].name) if i else "",
+            ) as progess:
+                for path, u, v in progess:
+                    f.write(f"{path} {u}, {v}\n")
+    elif print_table:
         table = PrettyTable(["texture", "x", "y"])
         table.align["texture"] = "l"
         with typer.progressbar(
