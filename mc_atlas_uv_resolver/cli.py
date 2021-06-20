@@ -1,6 +1,7 @@
+import csv
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Iterable, Optional, TextIO
 
 import typer
 from prettytable import PrettyTable
@@ -55,7 +56,7 @@ def cmd_atlas(
 def cmd_find_texture_uvs_on_atlas(
     atlas: Path = typer.Argument(..., exists=True, readable=True, dir_okay=False),
     textures: list[Path] = typer.Argument(..., exists=True, readable=True),
-    print_table: bool = typer.Option(False, "--table"),
+    as_table: bool = typer.Option(False, "--table", help="Output as table"),
     dest: Optional[Path] = typer.Option(None, "--out", "-o", writable=True, dir_okay=False),
 ):
     flattened_textures = utils.flatten_paths(textures)
@@ -63,28 +64,46 @@ def cmd_find_texture_uvs_on_atlas(
         list(filter(lambda t: t.suffix == ".png", flattened_textures)), atlas
     )
 
-    if dest:
-        with dest.open("w") as f:
-            with typer.progressbar(
-                texture_uvs,
-                length=len(flattened_textures),
-                label="Resolving UVs",
-                item_show_func=lambda i: str(i[0].name) if i else "",
-            ) as progess:
-                for path, u, v in progess:
-                    f.write(f"{path} {u}, {v}\n")
-    elif print_table:
-        table = PrettyTable(["texture", "x", "y"])
-        table.align["texture"] = "l"
+    show_progress = as_table or dest
+    if show_progress:
         with typer.progressbar(
             texture_uvs,
             length=len(flattened_textures),
             label="Resolving UVs",
             item_show_func=lambda i: str(i[0].name) if i else "",
         ) as progress:
-            for path, u, v in progress:
-                table.add_row([path, u, v])
-        print(table)
+            output_texture_uvs(progress, as_table, dest)
     else:
-        for path, u, v in texture_uvs:
+        output_texture_uvs(texture_uvs, as_table, dest)
+
+
+def output_texture_uvs(uvs: Iterable[tuple[Path, int, int]], as_table: bool, dest: Optional[Path]):
+    if dest:
+        newline = "" if as_table else None
+        with dest.open("w", newline=newline) as f:
+            write_texture_uvs(uvs, f, as_table)
+    else:
+        print_texture_uvs(uvs, as_table)
+
+
+def print_texture_uvs(uvs: Iterable[tuple[Path, int, int]], as_table: bool):
+    if as_table:
+        table = PrettyTable(["texture", "x", "y"])
+        table.align["texture"] = "l"
+        for path, u, v in uvs:
+            table.add_row([path, u, v])
+        print(table)
+        return
+    else:
+        for path, u, v in uvs:
             print(path, u, v)
+
+
+def write_texture_uvs(uvs: Iterable[tuple[Path, int, int]], file: TextIO, as_table: bool):
+    if as_table:
+        writer = csv.writer(file, dialect="excel")
+        for row in uvs:
+            writer.writerow(row)
+    else:
+        for path, u, v in uvs:
+            file.write(path, u, v)
