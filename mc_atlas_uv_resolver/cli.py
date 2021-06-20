@@ -27,10 +27,10 @@ def cb_main(
 
 
 app = typer.Typer(callback=cb_main, no_args_is_help=True)
-app_atlas = typer.Typer(name="atlas", no_args_is_help=True)
-app_uvs = typer.Typer(name="uvs", no_args_is_help=True)
+app_atlas = typer.Typer(name="atlas", no_args_is_help=True, help="Texture atlas commands")
+app_uv = typer.Typer(name="uv", no_args_is_help=True, help="UV commands")
 app.add_typer(app_atlas)
-app.add_typer(app_uvs)
+app.add_typer(app_uv)
 
 
 @app_atlas.command(name="convert", no_args_is_help=True, help="Convert file to texture atlas")
@@ -52,7 +52,7 @@ def cmd_atlas(
     convert_file_to_atlas(source, dest, width, height, mode)
 
 
-@app_uvs.command(name="find", no_args_is_help=True, help="Find texture uvs on a texture atlas")
+@app_uv.command(name="find", no_args_is_help=True, help="Find texture uvs on a texture atlas")
 def cmd_find_texture_uvs_on_atlas(
     atlas: Path = typer.Argument(..., exists=True, readable=True, dir_okay=False),
     textures: list[Path] = typer.Argument(..., exists=True, readable=True),
