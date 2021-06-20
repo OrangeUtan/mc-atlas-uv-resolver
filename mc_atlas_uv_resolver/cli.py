@@ -56,25 +56,51 @@ def cmd_atlas(
 def cmd_find_texture_uvs_on_atlas(
     atlas: Path = typer.Argument(..., exists=True, readable=True, dir_okay=False),
     textures: list[Path] = typer.Argument(..., exists=True, readable=True),
-    as_table: bool = typer.Option(False, "--table", help="Output as table"),
+    as_table: bool = typer.Option(False, "--table", "-t", help="Output as table"),
     dest: Optional[Path] = typer.Option(None, "--out", "-o", writable=True, dir_okay=False),
+    posix: bool = typer.Option(False, "--posix", "-p", help="Format paths as posix"),
+    relative_to: Optional[Path] = typer.Option(None, "--rel", exists=True),
+    remove_extension: bool = typer.Option(
+        False, "--no-ext", help="Remove file extension from paths"
+    ),
 ):
+    if dest:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+
+    # Resolve texture uvs
     flattened_textures = utils.flatten_paths(textures)
     texture_uvs = uvs.find_all_texture_uvs_in_atlas(
         list(filter(lambda t: t.suffix == ".png", flattened_textures)), atlas
     )
+    formatted_texture_uvs = format_texture_uvs(texture_uvs, posix, relative_to, remove_extension)
 
+    # Output texture uvs
     show_progress = as_table or dest
     if show_progress:
         with typer.progressbar(
-            texture_uvs,
+            formatted_texture_uvs,
             length=len(flattened_textures),
             label="Resolving UVs",
-            item_show_func=lambda i: str(i[0].name) if i else "",
+            item_show_func=lambda i: str(i[0]) if i else "",
         ) as progress:
             output_texture_uvs(progress, as_table, dest)
     else:
-        output_texture_uvs(texture_uvs, as_table, dest)
+        output_texture_uvs(formatted_texture_uvs, as_table, dest)
+
+
+def format_texture_uvs(
+    uvs: Iterable[tuple[Path, int, int]], posix: bool, relative_to: Optional[Path], remove_ext: bool
+) -> Iterable[tuple[Path, int, int]]:
+    if relative_to:
+        uvs = map(lambda e: (e[0].relative_to(relative_to), *e[1:]), uvs)
+
+    if remove_ext:
+        uvs = map(lambda e: (e[0].with_suffix(""), *e[1:]), uvs)
+
+    if posix:
+        uvs = map(lambda e: (e[0].as_posix(), *e[1:]), uvs)
+
+    return uvs
 
 
 def output_texture_uvs(uvs: Iterable[tuple[Path, int, int]], as_table: bool, dest: Optional[Path]):
@@ -106,4 +132,4 @@ def write_texture_uvs(uvs: Iterable[tuple[Path, int, int]], file: TextIO, as_tab
             writer.writerow(row)
     else:
         for path, u, v in uvs:
-            file.write(path, u, v)
+            file.write(f"{path} {u} {v}\n")
