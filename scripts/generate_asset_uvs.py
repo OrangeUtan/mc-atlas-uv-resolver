@@ -17,7 +17,7 @@ def cmd_main(
         print(f"Resoling {category}")
 
         atlas = atlases_root / category / "blocks_items.png"
-        out_root = Path(f"res/uv/{version}/{category}")
+        out_root = Path(f"build/uv/{version}/{category}")
 
         resolve_uvs(atlas, textures_root, "item", out_root)
         resolve_uvs(atlas, textures_root, "block", out_root)
