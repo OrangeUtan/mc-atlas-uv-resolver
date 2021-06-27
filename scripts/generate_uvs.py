@@ -8,8 +8,6 @@ from scripts.Settings import Settings
 
 app = typer.Typer()
 
-out_root = Path("build")
-
 
 @app.command()
 def cmd_main(minecraft_version: str):
@@ -18,14 +16,13 @@ def cmd_main(minecraft_version: str):
         print(f"Resolving uvs for {category}")
 
         atlas = get_atlas(minecraft_version, category, "blocks_items")
-        out_dir = out_root / "uv" / minecraft_version / category
+        out_dir = settings.uvs_root / minecraft_version / category
         textures_dir = (
             settings.get_version_assets_root(minecraft_version) / "minecraft" / "textures"
         )
 
         generate_uvs(atlas, textures_dir / "item", out_dir / "item.csv")
         generate_uvs(atlas, textures_dir / "block", out_dir / "block.csv")
-        break
 
 
 def generate_uvs(atlas: Path, textures_dir: Path, out: Path):

@@ -11,6 +11,7 @@ from dataclasses_json.cfg import config
 class Settings:
     minecraft_install_root: Path = field(metadata=config(decoder=Path))
     atlases_root: Path = field(metadata=config(decoder=Path))
+    uvs_root: Path = field(metadata=config(decoder=Path))
 
     @classmethod
     def load(cls, path: Path) -> "Settings":
