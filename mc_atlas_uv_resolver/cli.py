@@ -127,7 +127,7 @@ def print_texture_uvs(uvs: Iterable[tuple[Path, int, int]], as_table: bool):
 
 def write_texture_uvs(uvs: Iterable[tuple[Path, int, int]], file: TextIO, as_table: bool):
     if as_table:
-        writer = csv.writer(file, dialect="excel")
+        writer = csv.writer(file, dialect="excel", delimiter=";")
         for row in uvs:
             writer.writerow(row)
     else:
