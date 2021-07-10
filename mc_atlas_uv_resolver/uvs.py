@@ -15,10 +15,17 @@ def find_all_texture_uvs_in_atlas(textures: list[Path], atlas_path: Path):
     atlas: ndarray = cv2.imread(str(atlas_path), cv2.IMREAD_UNCHANGED)
     for path in textures:
         texture: ndarray = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+        height, width, channels = texture.shape
 
         # Add alpha channel if missing
-        if texture.shape[2] != 4:
+        if channels != 4:
             texture = cv2.cvtColor(texture, cv2.COLOR_RGB2RGBA)
 
-        u, v = find_texture_uvs_in_atlas(texture, atlas)
-        yield path, u, v
+        # Crop animated textures
+        if width != height:
+            texture = texture[0:width]
+            u, v = find_texture_uvs_in_atlas(texture, atlas)
+            yield path, u, v
+        else:
+            u, v = find_texture_uvs_in_atlas(texture, atlas)
+            yield path, u, v
